@@ -1,0 +1,59 @@
+@startuml Secuencia_DOCTORYA
+
+actor Cliente
+participant "CitaController" as Controller
+participant "CitaService" as Service
+participant "CitaRepository" as Repo
+database "PostgreSQL" as DB
+
+== Flujo A: Consulta de Citas ==
+Cliente -> Controller : GET /api/v1/citas/
+activate Controller
+Controller -> Service : obtener_todas_las_citas()
+activate Service
+Service -> Repo : get_all()
+activate Repo
+Repo -> DB : SELECT * FROM citas
+activate DB
+DB --> Repo : lista_citas
+deactivate DB
+Repo --> Service : lista_entidades
+deactivate Repo
+Service --> Controller : lista_dtos
+deactivate Service
+Controller --> Cliente : 200 OK (JSON Citas)
+deactivate Controller
+
+== Flujo B: Creación de Cita con Validación ==
+Cliente -> Controller : POST /api/v1/citas/ (CitaCreateDTO)
+activate Controller
+Controller -> Service : crear_cita(dto)
+activate Service
+Service -> Repo : verificar_disponibilidad(medico_id, fecha, hora)
+activate Repo
+Repo -> DB : SELECT * FROM citas WHERE medico_id AND fecha AND hora
+activate DB
+DB --> Repo : resultado
+deactivate DB
+Repo --> Service : existe_cruce
+deactivate Repo
+
+alt Horario Ocupado
+    Service --> Controller : HTTPException(409 Conflict)
+    Controller --> Cliente : 409 "El médico ya tiene una cita asignada"
+else Horario Disponible
+    Service -> Repo : guardar_cita(dto)
+    activate Repo
+    Repo -> DB : INSERT INTO citas ...
+    activate DB
+    DB --> Repo : confirmación + ID
+    deactivate DB
+    Repo --> Service : Cita guardada
+    deactivate Repo
+    Service --> Controller : CitaResponseDTO
+    Controller --> Cliente : 201 Created (JSON Cita)
+end
+deactivate Service
+deactivate Controller
+
+@enduml

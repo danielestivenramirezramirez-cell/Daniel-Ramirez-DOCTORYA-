@@ -1,0 +1,68 @@
+@startuml Diagrama_Clases_DOCTORYA
+
+package "Models" {
+    class Medico {
+        +int id
+        +string nombre
+        +string tipo_identificacion
+        +string numero_identificacion
+        +string especialidad
+        +string telefono
+        +string correo
+    }
+
+    class Paciente {
+        +int id
+        +string nombre
+        +string tipo_identificacion
+        +string numero_identificacion
+        +date fecha_nacimiento
+        +string telefono
+        +string correo
+    }
+
+    class Cita {
+        +int id
+        +date fecha
+        +time hora
+        +string motivo
+        +string estado
+        +int medico_id
+        +int paciente_id
+    }
+}
+
+package "Repositories" {
+    class MedicoRepository
+    class PacienteRepository
+    class CitaRepository
+}
+
+package "Services" {
+    class MedicoService
+    class PacienteService
+    class CitaService
+}
+
+package "Controllers" {
+    class MedicoController
+    class PacienteController
+    class CitaController
+}
+
+Medico "1" -- "*" Cita : atiende
+Paciente "1" -- "*" Cita : solicita
+
+MedicoController --> MedicoService
+MedicoService --> MedicoRepository
+MedicoRepository ..> Medico
+
+PacienteController --> PacienteService
+PacienteService --> PacienteRepository
+PacienteRepository ..> Paciente
+
+CitaController --> CitaService
+CitaService --> CitaRepository
+CitaRepository ..> Cita
+
+@enduml

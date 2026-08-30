@@ -1,0 +1,20 @@
+@startuml Despliegue_DOCTORYA
+
+node "Navegador Web / Cliente HTTP" {
+    component "Swagger UI / Postman" as Client
+}
+
+node "Servidor de Aplicación (Railway / Render)" {
+    component "Uvicorn (ASGI Server)" as Uvicorn
+    component "FastAPI App (DOCTORYA)" as FastAPI
+}
+
+node "Servidor de Base de Datos" {
+    database "PostgreSQL Database" as DB
+}
+
+Client --> Uvicorn : HTTP / JSON (Puerto 8000 / 443)
+Uvicorn --> FastAPI : ASGI Request
+FastAPI --> DB : SQLAlchemy / Psycopg (Puerto 5432)
+
+@enduml
