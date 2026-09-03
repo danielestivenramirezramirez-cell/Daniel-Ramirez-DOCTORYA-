@@ -16,7 +16,7 @@ class MedicoService:
         return self.repo.get_all()
 
     def obtener_por_id(self, medico_id: int):
-        medico = self.repo.get_by_id(medico_id) if hasattr(self.repo, 'get_by_id') else None
+        medico = self.repo.get_by_id(medico_id)
         if not medico:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El médico especificado no existe.")
         return medico
@@ -55,7 +55,7 @@ class PacienteService:
         return self.repo.get_all()
 
     def obtener_por_id(self, paciente_id: int):
-        paciente = self.repo.get_by_id(paciente_id) if hasattr(self.repo, 'get_by_id') else None
+        paciente = self.repo.get_by_id(paciente_id)
         if not paciente:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El paciente especificado no existe.")
         return paciente
@@ -102,17 +102,17 @@ class CitaService:
         return cita
 
     def agendar_cita(self, data: CitaCreate):
-        # 1. Validar existencia del médico
-        medicos = self.medico_repo.get_all()
-        if not any(m.id == data.medico_id for m in medicos):
+        # 1. Validar existencia del médico directo por ID
+        medico = self.medico_repo.get_by_id(data.medico_id)
+        if not medico:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El médico especificado no existe.")
 
-        # 2. Validar existencia del paciente
-        pacientes = self.paciente_repo.get_all()
-        if not any(p.id == data.paciente_id for p in pacientes):
+        # 2. Validar existencia del paciente directo por ID
+        paciente = self.paciente_repo.get_by_id(data.paciente_id)
+        if not paciente:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El paciente especificado no existe.")
 
-        # 3. Validar cruce de horario del médico
+        # 3. Validar choque de agenda del médico
         cita_existente = self.cita_repo.get_by_medico_fecha_hora(data.medico_id, data.fecha, data.hora)
         if cita_existente:
             raise HTTPException(

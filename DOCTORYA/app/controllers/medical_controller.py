@@ -26,17 +26,11 @@ def get_medicos(db: Session = Depends(get_db)):
 
 @router.get("/medicos/buscar-por-identificacion", response_model=MedicoResponse, tags=["Médicos"])
 def get_medico_por_identificacion(tipo_doc: str, num_doc: str, db: Session = Depends(get_db)):
-    medico = MedicoService(db).obtener_por_identificacion(tipo_doc, num_doc)
-    if not medico:
-        raise HTTPException(status_code=404, detail="Médico no encontrado")
-    return medico
+    return MedicoService(db).obtener_por_identificacion(tipo_doc, num_doc)
 
 @router.get("/medicos/buscar-por-correo", response_model=MedicoResponse, tags=["Médicos"])
 def get_medico_por_correo(correo: str, db: Session = Depends(get_db)):
-    medico = MedicoService(db).obtener_por_correo(correo)
-    if not medico:
-        raise HTTPException(status_code=404, detail="Médico no encontrado")
-    return medico
+    return MedicoService(db).obtener_por_correo(correo)
 
 @router.post("/medicos", response_model=MedicoResponse, status_code=status.HTTP_201_CREATED, tags=["Médicos"])
 def create_medico(data: MedicoCreate, db: Session = Depends(get_db)):
@@ -55,17 +49,11 @@ def get_pacientes(db: Session = Depends(get_db)):
 
 @router.get("/pacientes/buscar-por-identificacion", response_model=PacienteResponse, tags=["Pacientes"])
 def get_paciente_por_identificacion(tipo_doc: str, num_doc: str, db: Session = Depends(get_db)):
-    paciente = PacienteService(db).obtener_por_identificacion(tipo_doc, num_doc)
-    if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
-    return paciente
+    return PacienteService(db).obtener_por_identificacion(tipo_doc, num_doc)
 
 @router.get("/pacientes/buscar-por-correo", response_model=PacienteResponse, tags=["Pacientes"])
 def get_paciente_por_correo(correo: str, db: Session = Depends(get_db)):
-    paciente = PacienteService(db).obtener_por_correo(correo)
-    if not paciente:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
-    return paciente
+    return PacienteService(db).obtener_por_correo(correo)
 
 @router.post("/pacientes", response_model=PacienteResponse, status_code=status.HTTP_201_CREATED, tags=["Pacientes"])
 def create_paciente(data: PacienteCreate, db: Session = Depends(get_db)):
@@ -84,14 +72,19 @@ def get_citas(db: Session = Depends(get_db)):
 
 @router.get("/citas/{cita_id}", response_model=CitaResponse, tags=["Citas"])
 def get_cita_por_id(cita_id: int, db: Session = Depends(get_db)):
-    cita = CitaService(db).obtener_por_id(cita_id)
-    if not cita:
-        raise HTTPException(status_code=404, detail="Cita no encontrada")
-    return cita
+    return CitaService(db).obtener_por_id(cita_id)
 
 @router.post("/citas", response_model=CitaResponse, status_code=status.HTTP_201_CREATED, tags=["Citas"])
 def create_cita(data: CitaCreate, db: Session = Depends(get_db)):
-    return CitaService(db).agendar_cita(data)
+    try:
+        return CitaService(db).agendar_cita(data)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al agendar la cita: {str(e)}"
+        )
 
 @router.put("/citas/{cita_id}", response_model=CitaResponse, tags=["Citas"])
 def update_cita(cita_id: int, data: CitaUpdate, db: Session = Depends(get_db)):

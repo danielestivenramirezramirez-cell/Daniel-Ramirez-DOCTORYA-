@@ -13,6 +13,9 @@ class MedicoRepository:
     def get_all(self):
         return self.db.query(Medico).all()
 
+    def get_by_id(self, medico_id: int):
+        return self.db.query(Medico).filter(Medico.id == medico_id).first()
+
     def get_by_doc(self, tipo: str, num: str):
         return self.db.query(Medico).filter(
             Medico.tipo_identificacion == tipo, 
@@ -30,7 +33,7 @@ class MedicoRepository:
         return db_medico
 
     def update(self, medico_id: int, data: MedicoUpdate):
-        db_medico = self.db.query(Medico).filter(Medico.id == medico_id).first()
+        db_medico = self.get_by_id(medico_id)
         if db_medico:
             for key, value in data.model_dump(exclude_unset=True).items():
                 setattr(db_medico, key, value)
@@ -45,6 +48,9 @@ class PacienteRepository:
 
     def get_all(self):
         return self.db.query(Paciente).all()
+
+    def get_by_id(self, paciente_id: int):
+        return self.db.query(Paciente).filter(Paciente.id == paciente_id).first()
 
     def get_by_doc(self, tipo: str, num: str):
         return self.db.query(Paciente).filter(
@@ -63,7 +69,7 @@ class PacienteRepository:
         return db_paciente
 
     def update(self, paciente_id: int, data: PacienteUpdate):
-        db_paciente = self.db.query(Paciente).filter(Paciente.id == paciente_id).first()
+        db_paciente = self.get_by_id(paciente_id)
         if db_paciente:
             for key, value in data.model_dump(exclude_unset=True).items():
                 setattr(db_paciente, key, value)
@@ -82,6 +88,13 @@ class CitaRepository:
     def get_by_id(self, cita_id: int):
         return self.db.query(Cita).filter(Cita.id == cita_id).first()
 
+    def get_by_medico_fecha_hora(self, medico_id: int, fecha, hora):
+        return self.db.query(Cita).filter(
+            Cita.medico_id == medico_id,
+            Cita.fecha == fecha,
+            Cita.hora == hora
+        ).first()
+
     def create(self, cita: CitaCreate):
         db_cita = Cita(**cita.model_dump())
         self.db.add(db_cita)
@@ -90,7 +103,7 @@ class CitaRepository:
         return db_cita
 
     def update(self, cita_id: int, data: CitaUpdate):
-        db_cita = self.db.query(Cita).filter(Cita.id == cita_id).first()
+        db_cita = self.get_by_id(cita_id)
         if db_cita:
             for key, value in data.model_dump(exclude_unset=True).items():
                 setattr(db_cita, key, value)
